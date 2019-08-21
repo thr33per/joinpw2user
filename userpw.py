@@ -25,7 +25,7 @@ def open_file(file):
 
 def save_file(file, pw_list):
     try:
-        temp = open(file, 'a')
+        temp = open(file, 'w')
         for record in pw_list:
             temp.write('{0}\n'.format(record))
         temp.close()
