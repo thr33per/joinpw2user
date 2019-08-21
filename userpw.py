@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from sys import argv
+from os import path
 
 pwdump = []  # format= <username>:<uid>:<LM-hash>:<NTLM-hash>:<comment>:<homedir>
 generic = []  # format= <username>:<hash>
@@ -12,7 +13,7 @@ hashcat = []  # format= <hash>:<password>
 
 def open_file(file):
     try:
-        temp = open(file, 'r')
+        temp = open(path.expanduser(file), 'r')
         temp_list = []
         for record in temp:
             if record != '\n':
@@ -25,7 +26,7 @@ def open_file(file):
 
 def save_file(file, pw_list):
     try:
-        temp = open(file, 'w')
+        temp = open(path.expanduser(file), 'w')
         for record in pw_list:
             temp.write('{0}\n'.format(record))
         temp.close()
@@ -35,13 +36,13 @@ def save_file(file, pw_list):
         while permission_denied:
             print("It is not permissible to save in this location.")
             try_again = input("Is there somewhere else that you would like to try?") or 'No'
-            if try_again in ('n', 'N', 'No', 'no'):
+            if try_again in ('n', 'N', 'NO', 'No', 'no'):
                 permission_denied = False
                 pass
             if try_again in ('y', 'Y', 'YES', 'Yes', 'yes'):
                 try:
                     file_name = input("Where would you like to save: ")
-                    temp = open(file_name, 'a')
+                    temp = open(path.expanduser(file_name), 'a')
                     for record in pw_list:
                         temp.write('{0}\n'.format(record))
                     temp.close()
@@ -49,6 +50,8 @@ def save_file(file, pw_list):
                     permission_denied = False
                 except PermissionError:
                     permission_denied = True
+    except FileNotFoundError:
+        print("Nope")
 
 
 def check_list(in_list):
