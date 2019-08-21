@@ -23,45 +23,42 @@ def open_file(file):
         print('Unable to locate {0}'.format(file))
 
 
-def save_file(file):
+def save_file(file, pw_list):
     temp = open(file, 'a')
-    for record in combine_pairs():
+    for record in pw_list:
         temp.write('{0}\n'.format(record))
     temp.close()
     pass
 
 
-def combine_pairs():
-    pw_list = []
-    if len(pwdump) > 0:
+def check_list(in_list):
+    temp_list = []
+    if len(in_list) > 0:
         for result in hashcat:
-            for parent in pwdump:
-                if result['hash'] == parent['ntlm-hash']:
-                    pw_list.append('{0}:{1}'.format(parent['username'], result['password']))
-        if len(pw_list) == 0:
-            return "No matches found."
-        else:
-            return pw_list
-    if len(nixdump) > 0:
-        for result in hashcat:
-            for parent in nixdump:
-                if result['hash'] == parent['hash']:
-                    pw_list.append('{0}:{1}'.format(parent['username'], result['password']))
-        if len(pw_list) == 0:
-            return "No matches found."
-        else:
-            return pw_list
-    if len(generic) > 0:
-        for result in hashcat:
-            for parent in generic:
-                if result['hash'] == parent['hash']:
-                    pw_list.append('{0}:{1}'.format(parent['username'], result['password']))
-        if len(pw_list) == 0:
-            return "No matches found."
-        else:
-            return pw_list
+            hash1 = result['hash']
+            clear_pw = result['password']
+            for parent in in_list:
+                try:
+                    hash2 = parent['ntlm-hash']
+                except KeyError:
+                    hash2 = parent['hash']
+                username = parent['username']
+                if hash1 == hash2:
+                    temp_list.append('{0}:{1}'.format(username, clear_pw))
+    return temp_list
+
+
+def list_out(hash_list):
+    save_output = input('Type a filename to save the reunited pairs to file, '
+                        'or press enter to display them as standard output: ') or False
+    final_results = check_list(hash_list)
+    if not save_output:
+        print('')
+        for result in final_results:
+            print(result)
     else:
-        return "No matches found."
+        print('\nWriting to file: {0}'.format(save_output))
+        save_file(save_output, final_results)
 
 
 file_error = False
@@ -133,42 +130,14 @@ if not file_error:
         except IndexError:
             pass
 
-
 if len(hashcat) > 0:
     print("\nLooks like there are some passwords that need to be reunited with their username.")
-    if len(pwdump) > 0 and len(hashcat) > 0:
-        save_output = input("Type a filename to save the reunited pairs to file, "
-                            "or press enter to display them as standard output: ")
-        if save_output == '':
-            print("")
-            final_results = combine_pairs()
-            for result in final_results:
-                print(result)
-        else:
-            print("\nWriting to file: {0}".format(save_output))
-            save_file(save_output)
+    if len(pwdump) > 0:
+        list_out(pwdump)
     elif len(nixdump) > 0 and len(hashcat) > 0:
-        save_output = input("Type a filename to save the reunited pairs to file, "
-                            "or press enter to display them as standard output: ")
-        if save_output == '':
-            print("")
-            final_results = combine_pairs()
-            for result in final_results:
-                print(result)
-        else:
-            print('\nWriting to file: {0}'.format(save_output))
-            save_file(save_output)
+        list_out(nixdump)
     elif len(generic) > 0 and len(hashcat) > 0:
-        save_output = input("Type a filename to save the reunited pairs to file, "
-                            "or press enter to display them as standard output: ")
-        if save_output == '':
-            print("")
-            final_results = combine_pairs()
-            for result in final_results:
-                print(result)
-        else:
-            print('\nWriting to file: {0}'.format(save_output))
-            save_file(save_output)
+        list_out(generic)
     else:
         pass
 else:
