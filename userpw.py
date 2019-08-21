@@ -24,11 +24,31 @@ def open_file(file):
 
 
 def save_file(file, pw_list):
-    temp = open(file, 'a')
-    for record in pw_list:
-        temp.write('{0}\n'.format(record))
-    temp.close()
-    pass
+    try:
+        temp = open(file, 'a')
+        for record in pw_list:
+            temp.write('{0}\n'.format(record))
+        temp.close()
+        print("Your file has been saved to disk.")
+    except PermissionError:
+        permission_denied = True
+        while permission_denied:
+            print("It is not permissible to save in this location.")
+            try_again = input("Is there somewhere else that you would like to try?") or 'No'
+            if try_again in ('n', 'N', 'No', 'no'):
+                permission_denied = False
+                pass
+            if try_again in ('y', 'Y', 'YES', 'Yes', 'yes'):
+                try:
+                    file_name = input("Where would you like to save: ")
+                    temp = open(file_name, 'a')
+                    for record in pw_list:
+                        temp.write('{0}\n'.format(record))
+                    temp.close()
+                    print("Your file has been saved to disk.")
+                    permission_denied = False
+                except PermissionError:
+                    permission_denied = True
 
 
 def check_list(in_list):
@@ -49,6 +69,7 @@ def check_list(in_list):
 
 
 def list_out(hash_list):
+    print('\n[+] Attempting to combine clear-text passwords with their associated usernames.\n')
     save_output = input('Type a filename to save the reunited pairs to file, '
                         'or press enter to display them as standard output: ') or False
     final_results = check_list(hash_list)
@@ -57,7 +78,7 @@ def list_out(hash_list):
         for result in final_results:
             print(result)
     else:
-        print('\nWriting to file: {0}'.format(save_output))
+        print('\nAttempting to save to location: {0}'.format(save_output))
         save_file(save_output, final_results)
 
 
@@ -90,7 +111,7 @@ if not file_error:
     for file in files:
         try:
             if len(file[0].split(':')[0]) >= 32:
-                print('[+] HashCat format detected.')
+                print('[+] Clear text passwords found.')
                 for line in file:
                     try:
                         temp_dict = {'hash': line.split(':')[0], 'password': line.split(':')[1]}
@@ -98,7 +119,7 @@ if not file_error:
                     except IndexError:
                         pass
             elif len(file[0].split(':')[0]) < len(file[0].split(':')[1]) and len(file[0].split(':')[1]) >= 32:
-                print('[+] Generic format detected.')
+                print('[+] Usernames found in hash list.')
                 for line in file:
                     try:
                         temp_dict = {'username': line.split(':')[0], 'hash': line.split(':')[1]}
@@ -106,7 +127,7 @@ if not file_error:
                     except IndexError:
                         pass
             elif len(file[0].split(':')[3]) == 32:
-                print('[+] PWDump format detected.')
+                print('[+] Usernames found in hash list.')
                 for line in file:
                     try:
                         temp_dict = {'username': line.split(':')[0], 'uid': line.split(':')[1],
@@ -116,7 +137,7 @@ if not file_error:
                     except IndexError:
                         pass
             elif len(file[0].split(':')[1]) > 32:
-                print('[+] NIXDump format detected.')
+                print('[+] Usernames found in hash list.')
                 for line in file:
                     try:
                         temp_dict = {'username': line.split(':')[0], 'hash': line.split(':')[1],
@@ -131,7 +152,7 @@ if not file_error:
             pass
 
 if len(hashcat) > 0:
-    print("\nLooks like there are some passwords that need to be reunited with their username.")
+    print("\nLooks like there are some passwords that need to be claimed.")
     if len(pwdump) > 0:
         list_out(pwdump)
     elif len(nixdump) > 0 and len(hashcat) > 0:
