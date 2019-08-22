@@ -7,8 +7,17 @@ generic = []  # format= <username>:<hash>
 nixdump = []  # format= <username>:<hash>:<uid>:<gid>:<GECOS>:<directory>:<shell>
 hashcat = []  # format= <hash>:<password>
 
-# NTLM appears to be 32 characters long
-# LM appears to also be 32 characters long
+
+def identify_ntlm(hash_string):
+    excluded_letters = ['g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+                        'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+    test_hash = hash_string
+    if len(test_hash) == 32:
+        ntlm = True
+        for letter in excluded_letters:
+            if letter in hash_string.lower():
+                ntlm = False
+        return ntlm
 
 
 def open_file(file):
@@ -113,7 +122,7 @@ files = [file1_cache, file2_cache]
 if not file_error:
     for file in files:
         try:
-            if len(file[0].split(':')[0]) >= 32:
+            if identify_ntlm(file[0].split(':')[0]):
                 print('[+] Clear text passwords found.')
                 for line in file:
                     try:
@@ -121,7 +130,7 @@ if not file_error:
                         hashcat.append(temp_dict)
                     except IndexError:
                         pass
-            elif len(file[0].split(':')[0]) < len(file[0].split(':')[1]) and len(file[0].split(':')[1]) >= 32:
+            elif identify_ntlm(file[0].split(':')[1]):
                 print('[+] Usernames found in hash list.')
                 for line in file:
                     try:
@@ -129,7 +138,7 @@ if not file_error:
                         generic.append(temp_dict)
                     except IndexError:
                         pass
-            elif len(file[0].split(':')[3]) == 32:
+            elif identify_ntlm(file[0].split(':')[3]):
                 print('[+] Usernames found in hash list.')
                 for line in file:
                     try:
@@ -163,6 +172,6 @@ if len(hashcat) > 0:
     elif len(generic) > 0 and len(hashcat) > 0:
         list_out(generic)
     else:
-        pass
+        print('No username:hash file found to associate with passwords.')
 else:
     print("\nI don't see any cracked hashcat passwords to match.")
