@@ -1,8 +1,6 @@
 # Problem Statement:
 
-You have a pwdump file of thousands of users. After cracking many with hashcat, 
-you are left with a hashcat.potfile that is in the format of hash:password but
-is not tied to the usernames in the original list.
+You have a pwdump file of thousands of users. After cracking many with hashcat, you are left with a hashcat.potfile that is in the format of hash:password, but is not tied to the usernames in the original list.
 
 **Sample pwdump.txt**  
 ```
