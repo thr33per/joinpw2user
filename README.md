@@ -25,14 +25,14 @@ This script takes two input files (A password hash dump file, and a hashcat outp
 
 To use this, you can use the command line as noted below
 
-`$ python userpw.py input1.txt input2.txt`
-or `$ ./userpw.py input1.txt input2.txt`
+`$ python joinpw2user.py input1.txt input2.txt`
+or `$ ./joinpw2user.py input1.txt input2.txt`
 
 The script allows you to save the results out to a file, or display them on standard output.
 
 **Sample script output**  
 ```
-$ python userpw.py pwdump.txt ~/.hashcat/hashcat.potfile
+$ python joinpw2user.py pwdump.txt ~/.hashcat/hashcat.potfile
 [+] Usernames found in hash list.
 [+] Clear text passwords found.
 
