@@ -32,7 +32,7 @@ The script allows you to save the results out to a file, or display them on stan
 
 **Sample script output**  
 ```
-$ python userpw.pw pwdump.txt ~/.hashcat/hashcat.potfile
+$ python userpw.py pwdump.txt ~/.hashcat/hashcat.potfile
 [+] Usernames found in hash list.
 [+] Clear text passwords found.
 
