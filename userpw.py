@@ -112,9 +112,11 @@ if len(argv) == 3:
         file_error = True
 elif len(argv) <= 2:
     print("I don't have enough options to work from. Please feed me your hash dump file and your hashcat output file.")
+    print("\nUsage: python {0} input1.txt input2.txt\n".format(argv[0]))
     file_error = True
 else:
     print("How many files are you trying to provide?! I can only take two at this time.")
+    print("\nUsage: python {0} input1.txt input2.txt\n".format(argv[0]))
     file_error = True
 
 files = [file1_cache, file2_cache]
