@@ -2,10 +2,14 @@
 from sys import argv
 from os import path
 
-pwdump = []  # format= <username>:<uid>:<LM-hash>:<NTLM-hash>:<comment>:<homedir>
-generic = []  # format= <username>:<hash>
-nixdump = []  # format= <username>:<hash>:<uid>:<gid>:<GECOS>:<directory>:<shell>
-hashcat = []  # format= <hash>:<password>
+
+pwdump = []
+generic = []
+nixdump = []
+hashcat = []
+file1_cache = []
+file2_cache = []
+file_error = False
 
 
 def identify_ntlm(hash_string):
@@ -20,9 +24,9 @@ def identify_ntlm(hash_string):
         return ntlm
 
 
-def open_file(file):
+def open_file(file_to_open):
     try:
-        temp = open(path.expanduser(file), 'r')
+        temp = open(path.expanduser(file_to_open), 'r')
         temp_list = []
         for record in temp:
             if record != '\n':
@@ -30,7 +34,7 @@ def open_file(file):
         temp.close()
         return temp_list
     except FileNotFoundError:
-        print('Unable to locate {0}'.format(file))
+        print('[-] {0} is not a valid file.'.format(file_to_open))
 
 
 def save_file(file, pw_list):
@@ -94,30 +98,39 @@ def list_out(hash_list):
         save_file(save_output, final_results)
 
 
-file_error = False
-file1_cache = []
-file2_cache = []
-
-if len(argv) == 3:
-    file1 = argv[1]
-    file2 = argv[2]
+def incorrect_format():
     try:
-        for line in open_file(file1):
-            file1_cache.append(line.rstrip())
+        if missing_files:
+            pass
+        else:
+            print('[-] Unknown format error.')
+            print('\nPlease use one of these formats in your input files.')
+            print('   1. PWDump format: <username>:<rid>:<LM-hash>:<NTLM-hash>:<comment>:<homedir>')
+            print('   2. *Nixdump format: <username>:<hash>:<uid>:<gid>:<GECOS>:<directory>:<shell>')
+            print('   3. Standard format: <username>:<hash>')
+            print('\nAs well as a hashcat potfile.')
+            print('   Hashcat potfile: <hash>:<password>\n')
+    except NameError:
+        print('[-] Unknown format error.')
+        print('\nPlease use one of these formats in your input files.')
+        print('   1. PWDump format: <username>:<rid>:<LM-hash>:<NTLM-hash>:<comment>:<homedir>')
+        print('   2. *Nixdump format: <username>:<hash>:<uid>:<gid>:<GECOS>:<directory>:<shell>')
+        print('   3. Standard format: <username>:<hash>')
+        print('\nAs well as a hashcat potfile.')
+        print('   Hashcat potfile: <hash>:<password>\n')
 
-        for line in open_file(file2):
-            file2_cache.append(line.rstrip())
-    except TypeError:
-        print("It looks like something is wrong with your input files.")
-        file_error = True
-elif len(argv) <= 2:
-    print("I don't have enough options to work from. Please feed me your hash dump file and your hashcat output file.")
-    print("\nUsage: python {0} input1.txt input2.txt\n".format(argv[0]))
-    file_error = True
-else:
-    print("How many files are you trying to provide?! I can only take two at this time.")
-    print("\nUsage: python {0} input1.txt input2.txt\n".format(argv[0]))
-    file_error = True
+
+try:
+    input1 = open_file(argv[1])
+    input2 = open_file(argv[2])
+    for entry in input1:
+        file1_cache.append(entry.rstrip())
+    for entry2 in input2:
+        file2_cache.append(entry2.rstrip())
+except IndexError:
+    print("[-] Not enough options.")
+    print("\nUsage: {0} input1.txt input2.txt\n".format(argv[0]))
+    missing_files = True
 
 files = [file1_cache, file2_cache]
 
@@ -161,7 +174,7 @@ if not file_error:
                     except IndexError:
                         pass
             else:
-                print('[-] Unable to identify output type. Are you sure you have something with a username?')
+                incorrect_format()
         except IndexError:
             pass
 
@@ -174,6 +187,7 @@ if len(hashcat) > 0:
     elif len(generic) > 0 and len(hashcat) > 0:
         list_out(generic)
     else:
-        print('No username:hash file found to associate with passwords.')
+        print('\nNo username:hash file found to associate with passwords.\n')
+        incorrect_format()
 else:
-    print("\nI don't see any cracked hashcat passwords to match.")
+    incorrect_format()
